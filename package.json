@@ -1,0 +1,24 @@
+{
+  "name": "auth-practice",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.2",
+    "@hono/zod-validator": "^0.4.1",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "argon2": "^0.41.1",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.35.1",
+    "drizzle-zod": "^0.5.1",
+    "hono": "^4.6.5",
+    "mysql2": "^3.11.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "drizzle-kit": "^0.26.2",
+    "tsx": "^4.7.1"
+  }
+}
