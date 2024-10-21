@@ -1,7 +1,7 @@
-import { ForeignKey, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { datetime, ForeignKey, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 import { createId } from "@paralleldrive/cuid2";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { generate_session } from "../utils/sessions";
+import { generateSessionToken } from "../utils/sessions";
 
 export const userTable = mysqlTable("userTable", {
     id: varchar('id', {length: 255}).notNull().$defaultFn(() => createId()).unique().primaryKey(),
@@ -14,16 +14,16 @@ export const userTable = mysqlTable("userTable", {
 
 
 export const sessionTable = mysqlTable("sessionTable", {
-    id: varchar('id', { length: 255 }).notNull().$defaultFn(() => generate_session()),
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
     userId: varchar("user_id", { length: 255 }).notNull().references(() => userTable.id),
-    expiresAt: varchar("expires_at")
+    expiresAt: datetime("expires_at").notNull(),
     
 })
 
 
 export const insertUserSchema = createInsertSchema(userTable).omit({ id: true, created_at: true, updated_at: true });
 
-const selectUserSchema = createSelectSchema(userTable);
+export const selectUserSchema = createSelectSchema(userTable).omit({id: true, created_at: true, updated_at: true, username: true});
 
 
 
