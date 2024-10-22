@@ -3,7 +3,7 @@ import { insertUserSchema, selectUserSchema, userTable } from "../db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
 import { sql, eq } from "drizzle-orm";
-import { getCookie, setCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { createSession, generateSessionToken } from "../utils/sessions";
 
 const users = new Hono();
@@ -63,10 +63,16 @@ users.post("/login", zValidator("json", selectUserSchema), async (c) => {
   const session = await createSession(token, result[0].id);
   setCookie(c, "session", token);
 
-  return c.json(
-    { message: "Login successful", user: result[0], session },
-    200
-  );
+  return c.json({ message: "Login successful", user: result[0], session }, 200);
 });
+
+
+
+
+users.post("/logout", async (c) => {
+  deleteCookie(c, "session");
+  return c.json({ message: "Logout successful" });
+});
+
 
 export default users;

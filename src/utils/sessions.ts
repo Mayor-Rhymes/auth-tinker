@@ -40,14 +40,16 @@ export const createSession = async (token: string, userId: string) => {
   return newSession[0];
 };
 
-export const validateSessionToken = async (token: string) => {
+export const validateSessionToken = async (token: string): Promise<Error | {session: Session, user: User} | null> => {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-  // console.log(sessionId);
+  
+  // console.log(sessionId, 45);
+  // console.log(token, 47);
   const result = await db
     .select()
     .from(sessionTable)
-    .where(eq(sessionTable.id, token));
-
+    .where(eq(sessionTable.id, sessionId));
+  // console.log(result, 51);
   if (result.length === 0) return new Error("Session does not exist");
 
   const resultForUser = await db
@@ -91,3 +93,11 @@ export interface Session {
   expiresAt: Date;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  password: string;
+  created_at: Date;
+  updated_at: Date;
+}

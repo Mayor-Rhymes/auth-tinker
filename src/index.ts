@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import users from './routes/users'
+import tickets from './routes/tickets'
 import { logger } from 'hono/logger'
 
 const app = new Hono()
@@ -8,6 +9,7 @@ const app = new Hono()
 
 app.use(logger());
 app.route("/api/auth", users);
+app.route("/api/tickets", tickets);
 app.get('/', (c) => {
   return c.json({message: "Hello there!"});
 })
