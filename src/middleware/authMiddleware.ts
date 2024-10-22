@@ -18,17 +18,20 @@ export const sessionAuth = createMiddleware<{
 }>(async (c, next) => {
   const sessionToken = getCookie(c, "session");
   //   console.log(sessionToken, 22);
-  if (sessionToken !== null) {
+  console.log(sessionToken, 22);
+  if (sessionToken !== undefined) {
     const result = await validateSessionToken(sessionToken as string);
 
     if (result === null) {
       c.set("user", null);
       c.set("session", null);
       return c.json({ message: "You are not authorized" }, 403);
+
     } else {
       const { session, user } = result as any;
       c.set("user", user);
       c.set("session", session);
+      await next();
     }
   } else {
     c.set("user", null);
@@ -36,5 +39,5 @@ export const sessionAuth = createMiddleware<{
     return c.json({ message: "You are not authorized" }, 403);
   }
 
-  await next();
+  
 });

@@ -4,7 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
 import { sql, eq } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { createSession, generateSessionToken } from "../utils/sessions";
+import { createSession, generateSessionToken, invalidateSessionToken } from "../utils/sessions";
 
 const users = new Hono();
 
@@ -70,6 +70,11 @@ users.post("/login", zValidator("json", selectUserSchema), async (c) => {
 
 
 users.post("/logout", async (c) => {
+  const token = getCookie(c, "session")
+  if (token !== null){
+     invalidateSessionToken(token as string);
+  }
+
   deleteCookie(c, "session");
   return c.json({ message: "Logout successful" });
 });

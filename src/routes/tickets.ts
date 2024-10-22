@@ -9,12 +9,10 @@ import {
 import { eq, and } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 
-
 const tickets = new Hono();
 
 tickets.get("/", sessionAuth, async (c) => {
   const user = c.get("user");
-
   const results = await db
     .select()
     .from(ticketTable)
