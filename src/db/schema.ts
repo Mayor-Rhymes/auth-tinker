@@ -2,6 +2,7 @@ import { datetime, ForeignKey, mysqlEnum, mysqlTable, text, timestamp, varchar }
 import { createId } from "@paralleldrive/cuid2";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { generateSessionToken } from "../utils/sessions";
+import {z} from 'zod';
 
 export const userTable = mysqlTable("userTable", {
     id: varchar('id', {length: 255}).notNull().$defaultFn(() => createId()).unique().primaryKey(),
@@ -38,3 +39,7 @@ export const selectUserSchema = createSelectSchema(userTable).omit({id: true, cr
 
 
 export const insertTicketSchema = createInsertSchema(ticketTable).omit({id: true, created_at: true, updated_at: true, authorId: true, status: true});
+export const updateTicketSchema = createInsertSchema(ticketTable, {
+   title: z.string().optional(),
+   description: z.string().optional(),
+}).omit({id: true, created_at: true, authorId: true, status: true})
