@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { insertUserSchema, selectUserSchema, userTable } from "../db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
-import { sql, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { createSession, generateSessionToken, invalidateSessionToken } from "../utils/sessions";
 
@@ -54,7 +54,7 @@ users.post("/login", zValidator("json", selectUserSchema), async (c) => {
   const result = await db
     .select()
     .from(userTable)
-    .where(eq(userTable.email, email));
+    .where(and(eq(userTable.email, email), eq(userTable.password, password)));
 
   if (result.length === 0)
     return c.json({ message: "This user does not exist" });

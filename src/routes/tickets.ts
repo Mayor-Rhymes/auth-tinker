@@ -24,6 +24,23 @@ tickets.get("/", sessionAuth, async (c) => {
   return c.json({ message: "Tickets fetched", results });
 });
 
+tickets.get("/search", sessionAuth, async (c) => {
+  const status = c.req.query("status");
+
+  const result = await db
+    .select()
+    .from(ticketTable)
+    .where(eq(ticketTable.status, status as any));
+
+  if (result.length === 0)
+    return c.json({
+      message: "There are no tickets available with this status",
+      tickets: result,
+    });
+
+  return c.json({ message: "Tickets fetched", tickets: result });
+});
+
 tickets.post(
   "/",
   sessionAuth,

@@ -3,11 +3,17 @@ import { Hono } from 'hono'
 import users from './routes/users'
 import tickets from './routes/tickets'
 import { logger } from 'hono/logger'
-
+import { cors } from 'hono/cors'
 const app = new Hono()
 
 
 app.use(logger());
+app.use("/api/*", cors({
+  origin: "http://localhost:5173",
+  allowMethods: ["GET", "PUT", "POST", "DELETE", "PATCH", "HEAD"],
+  credentials: true,
+}));
+
 app.route("/api/auth", users);
 app.route("/api/tickets", tickets);
 app.get('/', (c) => {
