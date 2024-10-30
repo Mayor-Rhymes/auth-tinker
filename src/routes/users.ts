@@ -13,6 +13,8 @@ import { hash, verify } from "@node-rs/argon2";
 
 const users = new Hono();
 
+
+//signup handler
 users.post("/signup", zValidator("json", insertUserSchema), async (c) => {
   const { email, username, password } = c.req.valid("json");
 
@@ -38,7 +40,7 @@ users.post("/signup", zValidator("json", insertUserSchema), async (c) => {
     .$returningId();
   console.log(result);
   //check if user creation was successful.
-  if (result.length === 0) return c.json({ message: "Unable to signup" }, 400);
+  if (result.length === 0) return c.json({ message: "Unable to signup" }, 401);
 
   //Get the user information if the user creation was successful.
   const finalResult = await db
@@ -56,6 +58,9 @@ users.post("/signup", zValidator("json", insertUserSchema), async (c) => {
   );
 });
 
+
+
+//login handler
 users.post("/login", zValidator("json", selectUserSchema), async (c) => {
   const { username, email, password } = c.req.valid("json");
 
@@ -65,13 +70,13 @@ users.post("/login", zValidator("json", selectUserSchema), async (c) => {
     .where(or(eq(userTable.email, email!), eq(userTable.username, username!)));
 
   if (result.length === 0)
-    return c.json({ message: "This user does not exist" });
+    return c.json({ message: "This user does not exist" }, 401);
 
   //If user with that email exists, check to see if the password inputted is correct.
 
   const passwordCorrect = await verify(result[0].password, password);
 
-  if (!passwordCorrect) return c.json({ message: "Incorrect password" });
+  if (!passwordCorrect) return c.json({ message: "Incorrect password" }, 401);
 
   const token = generateSessionToken();
   const session = await createSession(token, result[0].id);
@@ -80,6 +85,9 @@ users.post("/login", zValidator("json", selectUserSchema), async (c) => {
   return c.json({ message: "Login successful", user: result[0], session }, 200);
 });
 
+
+
+//logout handler
 users.post("/logout", async (c) => {
   const token = getCookie(c, "session");
   if (token !== null) {
@@ -89,5 +97,8 @@ users.post("/logout", async (c) => {
   deleteCookie(c, "session");
   return c.json({ message: "Logout successful" });
 });
+
+
+
 
 export default users;
