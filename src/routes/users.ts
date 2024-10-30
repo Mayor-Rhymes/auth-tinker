@@ -2,9 +2,14 @@ import { Hono } from "hono";
 import { insertUserSchema, selectUserSchema, userTable } from "../db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
-import { and, eq } from "drizzle-orm";
+import { or, eq } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { createSession, generateSessionToken, invalidateSessionToken } from "../utils/sessions";
+import {
+  createSession,
+  generateSessionToken,
+  invalidateSessionToken,
+} from "../utils/sessions";
+import { hash, verify } from "@node-rs/argon2";
 
 const users = new Hono();
 
@@ -23,10 +28,13 @@ users.post("/signup", zValidator("json", insertUserSchema), async (c) => {
   if (usernameExists.length > 0 || emailExists.length > 0)
     return c.json({ message: "Username or email address already exists" }, 409);
 
+  //encrypt password
+  const hashedPassword = await hash(password);
+
   //Retrieve the user id after creation
   const result = await db
     .insert(userTable)
-    .values({ email, username, password })
+    .values({ email, username, password: hashedPassword })
     .$returningId();
   console.log(result);
   //check if user creation was successful.
@@ -49,15 +57,21 @@ users.post("/signup", zValidator("json", insertUserSchema), async (c) => {
 });
 
 users.post("/login", zValidator("json", selectUserSchema), async (c) => {
-  const { email, password } = c.req.valid("json");
+  const { username, email, password } = c.req.valid("json");
 
   const result = await db
     .select()
     .from(userTable)
-    .where(and(eq(userTable.email, email), eq(userTable.password, password)));
+    .where(or(eq(userTable.email, email!), eq(userTable.username, username!)));
 
   if (result.length === 0)
     return c.json({ message: "This user does not exist" });
+
+  //If user with that email exists, check to see if the password inputted is correct.
+
+  const passwordCorrect = await verify(result[0].password, password);
+
+  if (!passwordCorrect) return c.json({ message: "Incorrect password" });
 
   const token = generateSessionToken();
   const session = await createSession(token, result[0].id);
@@ -66,18 +80,14 @@ users.post("/login", zValidator("json", selectUserSchema), async (c) => {
   return c.json({ message: "Login successful", user: result[0], session }, 200);
 });
 
-
-
-
 users.post("/logout", async (c) => {
-  const token = getCookie(c, "session")
-  if (token !== null){
-     invalidateSessionToken(token as string);
+  const token = getCookie(c, "session");
+  if (token !== null) {
+    invalidateSessionToken(token as string);
   }
 
   deleteCookie(c, "session");
   return c.json({ message: "Logout successful" });
 });
-
 
 export default users;

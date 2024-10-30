@@ -35,7 +35,10 @@ export const ticketTable = mysqlTable("ticketTable", {
 
 export const insertUserSchema = createInsertSchema(userTable).omit({ id: true, created_at: true, updated_at: true });
 
-export const selectUserSchema = createSelectSchema(userTable).omit({id: true, created_at: true, updated_at: true, username: true});
+export const selectUserSchema = createSelectSchema(userTable, {
+    username: z.string().optional(),
+    email: z.string().email().optional(),
+}).omit({id: true, created_at: true, updated_at: true});
 
 
 export const insertTicketSchema = createInsertSchema(ticketTable).omit({id: true, created_at: true, updated_at: true, authorId: true, status: true});
