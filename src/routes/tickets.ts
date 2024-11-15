@@ -19,18 +19,19 @@ tickets.get("/", sessionAuth, async (c) => {
     .where(eq(ticketTable.authorId, user?.id!));
 
   if (results.length === 0)
-    return c.json({ message: "You have no tickets" }, 200);
+    return c.json({ results }, 200);
 
-  return c.json({ message: "Tickets fetched", results });
+  return c.json({ results }, 200);
 });
 
 tickets.get("/search", sessionAuth, async (c) => {
+  const user = c.get("user");
   const status = c.req.query("status");
 
   const result = await db
     .select()
     .from(ticketTable)
-    .where(eq(ticketTable.status, status as any));
+    .where(and(eq(ticketTable.authorId, user?.id!), eq(ticketTable.status, status as any)));
 
   if (result.length === 0)
     return c.json({
